@@ -1,0 +1,39 @@
+CONCLUSIONES Y HALLAZGOS - EJERCICIO 1 (PRUEBA DE CARGA LOGIN CON K6)
+=============================================================
+
+1. Resumen
+--------------------
+Se implementó una prueba de carga con K6 sobre el endpoint de login de Fake Store API (POST /auth/login).
+Los datos de acceso se obtienen de un archivo CSV; el script define umbrales (thresholds) para comprobar automáticamente los requisitos del ejercicio.
+
+2. Datos de prueba ejecutados
+-----------------------------
+Entrada: archivo data/users.csv (columnas user y passwd). El detalle de filas está en readme.txt; las credenciales no están fijas en código.
+
+3. Hallazgos técnicos identificados
+-----------------------------------
+El escenario de carga usa tasa constante de llegada (constant-arrival-rate): 21 solicitudes por segundo durante 1 minuto, con hasta 100 VUs (usuarios virtuales) y 30 VUs preasignados. El objetivo operativo es superar el mínimo de 20 TPS exigido.
+
+En una ejecución de referencia se observó un ritmo efectivo ~20,88 TPS, tasa de error 0 % según la métrica de K6 para peticiones fallidas, y tiempo máximo de respuesta muy inferior al límite de 1,5 s.
+
+Al tratarse de un servicio público en Internet, la latencia puede variar según red y horario; los valores anteriores corresponden a esa ejecución concreta.
+
+4. Decisiones de implementación adoptadas
+-----------------------------------------
+Umbrales en el script: throughput mínimo (http_reqs), duración máxima de petición (http_req_duration ≤ 1500 ms) y tasa de error (< 3 % vía http_req_failed).
+
+El CSV se carga en memoria compartida (SharedArray) para reducir lecturas repetidas. Los reportes (JSON, HTML) se generan mediante handleSummary; run.ps1 y run.cmd organizan timestamps, logs y dashboard opcional.
+
+5. Evidencias de cumplimiento del ejercicio
+-------------------------------------------
+Por cada ejecución, la carpeta reports incluye: resumen JSON, reporte HTML, log de texto y, si aplica, export del dashboard web.
+
+Opcionalmente k6-html-reporter si está instalado.
+
+6. Conclusiones finales
+-----------------------
+La prueba cumple los requisitos planteados: el comportamiento bajo carga y la validación automática mediante umbrales confirman el resultado favorable ya detallado en el apartado 3.
+
+El entregable incluye documentación de uso, scripts de ejecución, datos parametrizados y evidencias en la carpeta reports.
+
+Ante un API remoto, cada nueva ejecución debe valorarse con su propio informe y con el paso o fallo de los umbrales definidos en el script.
